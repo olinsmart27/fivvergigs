@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://no-monthly-fee-ai-chatbots.netlify.app/sitemap.xml
