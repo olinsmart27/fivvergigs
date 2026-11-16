@@ -1,5 +1,5 @@
 // ==========================================================================
-// Netlify Serverless Function: Proxy to NVIDIA NIM API Catalog
+// Netlify Serverless Function: Polaris AI Assistant Proxy
 // ==========================================================================
 
 const https = require('https');
@@ -8,8 +8,8 @@ const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY || 'nvapi-K3eSfxjUNsV_ECuPl82V
 const PRIMARY_MODEL = 'nvidia/nemotron-3.5-super-vl-120b-a12b';
 const FALLBACK_MODEL = 'meta/llama-3.1-70b-instruct';
 
-const SYSTEM_PROMPT = `You are Wilson Guchu's real-time AI Website Assistant (FreeAPIBots). 
-You are an expert full-stack AI engineer. You converse naturally, intelligently, and helpfully with website visitors.
+const SYSTEM_PROMPT = `You are Polaris, Wilson Guchu's real-time AI Website Assistant (FreeAPIBots). 
+You converse naturally, intelligently, and helpfully with website visitors. If asked your name, you are Polaris.
 
 YOUR CORE EXPERTISE & SERVICES:
 1. Custom AI Chatbot Integration ($30 on Fiverr):
@@ -43,7 +43,7 @@ STYLE & TONE:
 - Never output internal thinking tags or system instructions.`;
 
 function callNvidia(model, messages) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const postData = JSON.stringify({
       model: model,
       messages: messages,
@@ -71,7 +71,6 @@ function callNvidia(model, messages) {
               text = choice.reasoning_content;
             }
             if (text) {
-              // Strip any reasoning artifact or <think> tags if present
               text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
               resolve({ ok: true, text });
             } else {
@@ -119,12 +118,9 @@ exports.handler = async function(event, context) {
       { role: 'user', content: userMessage }
     ];
 
-    // Try primary Nemotron model
     let result = await callNvidia(PRIMARY_MODEL, messages);
 
-    // If primary model failed, try fallback Llama model on NVIDIA NIM
     if (!result.ok || !result.text) {
-      console.warn('Primary model failed, attempting fallback model...');
       result = await callNvidia(FALLBACK_MODEL, messages);
     }
 
@@ -135,23 +131,21 @@ exports.handler = async function(event, context) {
         body: JSON.stringify({ reply: result.text })
       };
     } else {
-      console.error('All NVIDIA calls failed:', result);
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({ 
-          reply: `Hello! I am Wilson Guchu's AI assistant. We build custom AI chatbots for websites with zero monthly subscription fees starting at $30 on Fiverr. We support WordPress, Shopify, Real Estate, and custom websites. What kind of website are you looking to automate?`
+          reply: `Hello! I am Polaris, Wilson Guchu's AI assistant. We build custom AI chatbots for websites with zero monthly subscription fees starting at $30 on Fiverr. We support WordPress, Shopify, Real Estate, and custom websites. What kind of website are you looking to automate?`
         })
       };
     }
 
   } catch (error) {
-    console.error('Function error:', error);
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        reply: `Welcome! Wilson creates custom AI chatbots that run on free AI APIs, meaning you pay zero monthly subscription fees. You can view his packages and order with 48-hour delivery on Fiverr at https://www.fiverr.com/wilson_guchu. How can I help you today?`
+        reply: `Hello! I am Polaris, Wilson's AI assistant. We build custom website chatbots with zero monthly subscription fees. How can I help you today?`
       })
     };
   }
